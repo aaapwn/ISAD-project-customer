@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 
-function HomePage() {
+function HomePage({setCustomer_status}:{setCustomer_status: Function}) {
   const [isOpen, setIsOpen] = useState(false);
   const customer_id = localStorage.getItem("customer_id");
   return (

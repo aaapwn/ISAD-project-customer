@@ -1,12 +1,13 @@
 import HomePage from "./HomePage";
 import ViewQueue from "./ViewQueue";
+import { useState } from "react";
 
 const App = () => {
-  const customer_status = localStorage.getItem("customer_status");
-  if (customer_status === "queue") {
-    return <ViewQueue/>
-  } else if (customer_status === "customer") {
-    return <HomePage/>
+  const [customer_status, setCustomer_status] = useState(localStorage.getItem("customer_status"))
+  if (customer_status === "QUEUE") {
+    return <ViewQueue setCustomer_status={setCustomer_status}/>
+  } else if (customer_status === "CHECKED_IN") {
+    return <HomePage setCustomer_status={setCustomer_status}/>
   }
 }
 

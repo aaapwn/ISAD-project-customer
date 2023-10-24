@@ -1,6 +1,6 @@
 import { BiArrowBack } from "react-icons/bi";
 import { Link } from "react-router-dom";
-import { Fragment, useState } from "react";
+import { Fragment, useState, useEffect } from "react";
 import {
     Table,
     TableBody,
@@ -21,70 +21,18 @@ import { Input } from "@/components/ui/input";
 import { useRef } from "react";
 import { IoIosPaper } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
+import { getMenuItem } from "./api/menu/item/function";
+import { createOrder } from "./api/order/function";
 
-interface Group {
-    id: number;
-    name: string;
-    menus: Menu[];
-}
-
-interface Menu {
-    id: number;
-    name: string;
-    price: number;
-}
-
-interface Order {
-    id: number,
-    name: string,
-    amount: number
-}
 import toast from "react-hot-toast";
-
-const menus1: Menu[] = [
-    {
-        id: 1,
-        name: 'เนื้อสไลด์1',
-        price: 100
-    },
-    {
-        id: 2,
-        name: 'เนื้อสไลด์2',
-        price: 100
-    }
-]
-const menus2: Menu[] = [
-    {
-        id: 3,
-        name: 'หมูสไลด์1',
-        price: 100
-    },
-    {
-        id: 4,
-        name: 'หมูสไลด์2',
-        price: 100
-    }
-]
-
-const groups: Group[] = [
-    {
-        id: 1,
-        name: 'เนื้อ',
-        menus: menus1
-    },
-    {
-        id: 2,
-        name: 'หมู',
-        menus: menus2
-    },
-]
 
 const OrderMenu = () => {
   const navegate = useNavigate()
   const amount = useRef<any>()
-  const [orders, setOrders] = useState<Order[]>([])
+  const [orders, setOrders] = useState<any>([])
   const [orderSuccess, setOrderSuccess] = useState(false)
-  const onOrderHandler = (menu:Menu, amount:number) => {
+  const [allMenu, setAllMenu] = useState<any>([])
+  const onOrderHandler = (menu:any, amount:number) => {
     if (amount < 0) {
         toast.error("กรุณากรอกจำนวนที่ถูกต้อง")
         return;
@@ -97,7 +45,7 @@ const OrderMenu = () => {
             {
                 id: menu.id,
                 name: menu.name,
-                amount: amount
+                quantity: amount
             }
         )
     }
@@ -105,15 +53,32 @@ const OrderMenu = () => {
   }
 
   const onSubmitHandler = () => {
-    if (orders.length === 0) {
-        toast.error("กรุณาเลือกเมนูก่อนสั่ง")
-        return;
+      if (orders.length === 0) {
+          toast.error("กรุณาเลือกเมนูก่อนสั่ง")
+          return;
+        }
+        console.log(orders)
+        createOrder({
+            customerId: Number(localStorage.getItem("customer_id")),
+            orderItem: orders.map((order:any) => {
+                return {
+                    menuId: order.id,
+                    quantity: Number(order.quantity)
+                }
+            })
+        }).then(() => {
+            toast.success("สั่งเมนูสำเร็จ")
+        })
+        setOrderSuccess(false)
+        setOrders([])
+        navegate("/")
     }
-    console.log(orders)
-    setOrderSuccess(false)
-    setOrders([])
-    navegate("/")
-  }
+    useEffect(() => {
+      getMenuItem().then((menu) => {
+        setAllMenu(menu)
+        // console.log(menu)
+      })
+    }, [])
   return (
     <div>
         <div className='flex justify-between w-full bg-primary min-h-[5rem] items-center px-3 sticky top-0 z-50'>
@@ -129,13 +94,13 @@ const OrderMenu = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {groups.map((group) => (
+                {allMenu?.map((group:any) => (
                     <Fragment key={group.id}>
                         <TableRow>
                             <TableCell className="text-left font-semibold text-lg">หมวดหมู่ : {group.name}</TableCell>
                         </TableRow>
 
-                        {group.menus.map((menu) => (
+                        {group.Menu?.map((menu:any) => (
                             <TableRow key={menu.id} className="font-semibold text-center w-full">
                                 <TableCell>
                                     <p className="font-medium">{menu.name}</p>
@@ -148,7 +113,7 @@ const OrderMenu = () => {
                                                 {
                                                     orders?.filter((order:any) => {
                                                         return order.id === menu.id
-                                                    })[0]?.amount || 0
+                                                    })[0]?.quantity || 0
                                                 }
                                             </p>
                                         </DialogTrigger>
@@ -160,7 +125,7 @@ const OrderMenu = () => {
                                                 </div>
                                                 <Input type="number" placeholder={`เดิม : ${orders.filter((order:any) => {
                                                         return order.id === menu.id
-                                                    })[0]?.amount || 0}`} ref={amount}/>
+                                                    })[0]?.quantity || 0}`} ref={amount}/>
                                             </>
                                         <DialogFooter className="sm:justify-start">
                                             <DialogClose asChild>
@@ -202,10 +167,10 @@ const OrderMenu = () => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {orders.length > 0 && orders.map((order) => (
+                            {orders.length > 0 && orders.map((order:any) => (
                             <TableRow key={order.id}>
                                 <TableCell>{order.name}</TableCell>
-                                <TableCell>{order.amount}</TableCell>
+                                <TableCell>{order.quantity}</TableCell>
                             </TableRow>
                             ))}
                         </TableBody>

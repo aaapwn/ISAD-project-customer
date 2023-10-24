@@ -2,15 +2,18 @@ import { Button } from "./components/ui/button"
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { RiReservedFill } from "react-icons/ri";
+import { createQueue } from "./api/queue/functions";
 
 const ReserveQueue = () => {
   const navigate = useNavigate()
   const customer_id = localStorage.getItem("customer_id");
   
   const onReserveHandler = () => {
-    localStorage.setItem("customer_id", "1")
-    localStorage.setItem("customer_status", "queue")
-    navigate(`/${localStorage.getItem("customer_id")}`)
+    createQueue().then((queue) => {
+      localStorage.setItem("customer_id", queue.id as string)
+      localStorage.setItem("customer_status", "QUEUE")
+      navigate(`/${localStorage.getItem("customer_id")}`)
+    })
   }
 
   useEffect(() => {
